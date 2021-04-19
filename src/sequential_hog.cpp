@@ -41,7 +41,7 @@ int main( int argc, const char** argv )
     cout << "Input FPS " << input_fps << endl;
 
     //Initialize Writer to write output
-    VideoWriter video("out.avi", VideoWriter::fourcc('M','J','P','G'),10, Size(frame_width,frame_height),true);
+    VideoWriter video("out.mp4", VideoWriter::fourcc('m','p','4','v'),10, Size(frame_width,frame_height),true);
 
     /// Set up the pedestrian detector --> let us take the default one
     HOGDescriptor hog;
@@ -100,7 +100,7 @@ int main( int argc, const char** argv )
         for(size_t i = 1; i < track.size(); i++){
             line(img, track[i-1], track[i], Scalar(255,255,0), 2);
         }
-
+        resize(img,img,Size(img.cols/2, img.rows/2));
         video.write(img);
 
         /// Show
