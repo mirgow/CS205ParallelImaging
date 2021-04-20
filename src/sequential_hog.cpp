@@ -1,7 +1,7 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <time.h>
-
+#include <chrono>
 
 using namespace std;
 using namespace cv;
@@ -54,7 +54,10 @@ int main( int argc, const char** argv )
     time(&start);
     while(true){
         /// Grab a single frame from the video
+        auto star = std::chrono::steady_clock::now( );
         cap >> current_frame;
+        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now( ) - star );
+        cout << "milliseconds since start: " << elapsed.count( ) << '\n';
 
         // Track number of frames
         i++;
