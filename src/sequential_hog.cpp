@@ -26,7 +26,7 @@ int main( int argc, const char** argv )
     //    return -1;
     //}
     /// Create a videoreader interface
-    string video_location = "../data/ped1.mp4";
+    string video_location = "../data/ped1test.mp4";
     VideoCapture cap(video_location);
     Mat current_frame;
 
@@ -72,7 +72,7 @@ int main( int argc, const char** argv )
         /// Check if the frame has content
         if(current_frame.empty()){
             cerr << "Video has ended or bad frame was read. Quitting." << endl;
-            return 0;
+            break;
         }
         /// run the detector with default parameters. to get a higher hit-rate
         /// (and more false alarms, respectively), decrease the hitThreshold and
@@ -93,13 +93,13 @@ int main( int argc, const char** argv )
             stringstream temp;
             temp << weights[i];
             putText(img, temp.str(),Point(found[i].x,found[i].y+50), FONT_HERSHEY_SIMPLEX, 1, Scalar(0,0,255));
-            track.push_back(Point(found[i].x+found[i].width/2,found[i].y+found[i].height/2));
+            //track.push_back(Point(found[i].x+found[i].width/2,found[i].y+found[i].height/2));
         }
 
         /// plot the track so far
-        for(size_t i = 1; i < track.size(); i++){
-            line(img, track[i-1], track[i], Scalar(255,255,0), 2);
-        }
+        //for(size_t i = 1; i < track.size(); i++){
+        //    line(img, track[i-1], track[i], Scalar(255,255,0), 2);
+        ///}
         resize(img,img,Size(img.cols/2, img.rows/2));
         video.write(img);
 
