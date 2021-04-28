@@ -1,5 +1,13 @@
 # CS205ParallelImaging
 
+## What're We Exploring?
+Massively speeding up the detection of objects in video, with an emphasis on histogram of oriented gradients (HOG) algorithms. 
+This poses to help in realms such as:
+- 
+
+tl;dr: Speeding up object tracking.
+
+
 ## Initial Benchmarking
 
 
@@ -46,3 +54,7 @@ The process of updating each object tracker with the new frame can be paralleliz
 ## Sources
 
 https://developer.nvidia.com/cuda-gpus
+https://learnopencv.com/histogram-of-oriented-gradients/
+https://towardsdatascience.com/opencv-cuda-aws-ec2-no-more-tears-60af2b751c46
+
+
