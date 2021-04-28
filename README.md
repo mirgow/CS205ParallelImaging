@@ -17,7 +17,7 @@ Steps include:
 3. Generate histograms, most striaghtforward method adds up frequency of pixels based on their orientations. 
 4. Combine features from smaller matrix chunks into larger.
 5. Generate final overlay, which would appear as something like this:
-![HOG on dog example]("./img/doghog.png")
+![HOG on dog example]("/img/doghog.png")
 
 7. An identifier placed on top can now use the HOG to identify an object. 
 
