@@ -1,9 +1,9 @@
 # CS205ParallelImaging
 
 ## What're We Exploring?
+
 Massively speeding up the detection of objects in video, with an emphasis on histogram of oriented gradients (HOG) algorithms. 
-This poses to help in realms such as:
-- 
+This poses to help in realms such as
 
 tl;dr: Speeding up object tracking.
 
