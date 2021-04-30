@@ -52,7 +52,7 @@ void getRandomColors(vector<Scalar>& colors, int numColors)
 
 int main( int argc, const char** argv ) {
     // set default values for tracking algorithm and video
-    string videoPath = "../data/ped1test.mp4";
+    string videoPath = "../data/ped1.mp4";
 
     // create a video capture object to read videos
     cv::VideoCapture cap(videoPath);
@@ -79,7 +79,7 @@ int main( int argc, const char** argv ) {
     cout << "Input FPS " << input_fps << endl;
 
 
-    VideoWriter video("tracking.mp4", VideoWriter::fourcc('m','p','4','v'),10, Size(frame_width,frame_height),true);
+    VideoWriter video("fulltracking.mp4", VideoWriter::fourcc('m','p','4','v'),10, Size(frame_width,frame_height),true);
     // Get bounding boxes for first frame
     // selectROI's default behaviour is to draw box starting from the center
     // when fromCenter is set to false, you can draw box starting from top left corner
@@ -109,17 +109,18 @@ int main( int argc, const char** argv ) {
     vector<Scalar> colors;  
     getRandomColors(colors, bboxes.size()); 
     // Specify the tracker type
-    string trackerType = "KCF";
+    string trackerType = "GOTURN";
+    cout << trackerType << endl;
     
 
     vector<Ptr<Tracker>> trackers;
     // ReWrite to create multiple trackers
     for(int i=0; i < bboxes.size(); i++){
-    // Initialize tracker with box
-    Ptr<Tracker> tracker = TrackerKCF::create();
-    tracker->init(frame, bboxes[i]);
-    // Add tracker to vector of tracker objects
-    trackers.push_back(tracker);
+      // Initialize tracker with box
+      Ptr<Tracker> tracker = createTrackerByName(trackerType);//TrackerKCF::create();
+      tracker->init(frame, bboxes[i]);
+      // Add tracker to vector of tracker objects
+      trackers.push_back(tracker);
     }
 
     // Initialize stats
@@ -127,41 +128,40 @@ int main( int argc, const char** argv ) {
     time_t start, end;
     time(&start);
 
-    while(cap.isOpened()) 
-    {
-    // get frame from the video
-    cap >> frame;
-    // Stop the program if reached end of video
-    if (frame.empty()) break;
-    // Track number of frames
-    i++;
-    cout << "Frame " << i << endl;
-    // Track FPS of processing
-    if (i % 20 == 0){
-        time(&end);
-        double seconds = difftime (end, start);
-        double fps = 20/seconds;
-        cout << "Processing Frames Per Second = " << fps << endl; 
-        time(&start);
-    }
-    //Update the tracking result with new frame
-    //auto star = std::chrono::steady_clock::now( );
-    //auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now( ) - star );
-    //cout << "milliseconds since start: " << elapsed.count( ) << '\n';
-    // Todo Update each tracker 
-    #pragma omp parallel
-    #pragma omp for
-    for(unsigned i=0; i<trackers.size(); i++)
-    {
-      Rect2d temp = bboxes[i];
-      trackers[i]->update(frame, temp);
-      bboxes[i] = temp;
-      rectangle(frame, bboxes[i], colors[i], 2, 1);
-    }
+    while(cap.isOpened()) {
+      // get frame from the video
+      cap >> frame;
+      // Stop the program if reached end of video
+      if (frame.empty()) break;
+      // Track number of frames
+      i++;
+      cout << "Frame " << i << endl;
+      // Track FPS of processing
+      if (i % 20 == 0){
+          time(&end);
+          double seconds = difftime (end, start);
+          double fps = 20/seconds;
+          cout << "Processing Frames Per Second = " << fps << endl; 
+          time(&start);
+      }
+      //Update the tracking result with new frame
+      //auto star = std::chrono::steady_clock::now( );
+      //auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now( ) - star );
+      //cout << "milliseconds since start: " << elapsed.count( ) << '\n';
+      // Todo Update each tracker 
+      #pragma omp parallel
+      #pragma omp for
+      for(unsigned i=0; i<trackers.size(); i++)
+      {
+        Rect2d temp = bboxes[i];
+        trackers[i]->update(frame, temp);
+        bboxes[i] = temp;
+        rectangle(frame, bboxes[i], colors[i], 2, 1);
+      }
 
-    video.write(frame);
-    // quit on x button
-    if  (waitKey(1) == 27) break;
+      video.write(frame);
+      // quit on x button
+      if  (waitKey(1) == 27) break;
 
     }
     video.release();

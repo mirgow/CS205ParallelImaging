@@ -58,6 +58,27 @@ The time taken to copy one 4K image to and from the GPU is approximately 1ms.
 
 ### Multithreaded Object Tracking
 
+
+#### Comparison Of Object Tracking Algorithms
+
+We compared the multithreaded implementations of the various image tracking algorithms in openCV. This verified the literature reported results that KCF tracking presented the best tradeoff between tracking quality and speed. 
+
+
+| Algorithm  | Multithreaded FPS |
+| ------------- | ------------- |
+| KCF | 2.5 |
+| MOSSE | 6.66  |
+| BOOSTING  | 2.8 |
+| MIL  | 1.5  |
+| TLD  | 0.645 |
+| MEDIANFLOW  | 3.333 |
+| GOTURN  | CSRT  |
+| CSRT | 1.111  |
+
+
+
+#### KCF results
+
 The process of updating each object tracker with the new frame can be parallelized across threads usign openMP. The speedups achieved using different numbers of threads is shown on the graph. Overall we were able to achieve a maximum 3.6x speedup using openMP. 
 
 ![OpenMP graph]("./img/openmptracking.png")
