@@ -40,7 +40,7 @@ The time taken to copy one 4K image to and from the GPU is approximately 1ms.
 
 
 ## Application Technical Specs
-- Testing carried out on AWS Computing Platform, 1 g3.8xlarge instance, consisting of 2 NVIDIA Tesla M60 GPUs.
+- Testing carried out on AWS Computing Platform, 1 g3.8xlarge instance, consisting of 2 NVIDIA Tesla M60 GPUs. 32 cores (threads in parallel). 
 - Hybrid Parallel Processing Framework: [TO-DO]
   - 
 - 
@@ -52,6 +52,58 @@ The time taken to copy one 4K image to and from the GPU is approximately 1ms.
 - OpenCV 4.2.0
 - NVIDIA CUDA ver 10.0
 - CMake 3.10.2
+
+### Replicability Information
+This is a lengthy section, just because installation of OpenCV + CUDA on an AWS instance for GPU processing can be quite complicated. 
+1. Spin up an AWS instance with at least 2 GPUs. We used g3.8xlarge, but anything bigger in the G family or anything bigger than p3.8xlarge in the P family will work. 
+2. Install CUDA driver and toolkit, among other dependencies. `sudo apt-get update`
+`sudo apt-get upgrade`
+`sudo apt-get install build-essential cmake unzip pkg-config`
+`sudo apt-get install gcc-6 g++-6`
+`sudo apt-get install screen`
+`sudo apt-get install libxmu-dev libxi-dev libglu1-mesa libglu1-mesa-dev`
+`sudo apt-get install libjpeg-dev libpng-dev libtiff-dev`
+`sudo apt-get install libavcodec-dev libavformat-dev libswscale-dev libv4l-dev`
+`sudo apt-get install libxvidcore-dev libx264-dev`
+`sudo apt-get install libopenblas-dev libatlas-base-dev liblapack-dev gfortran`
+`sudo apt-get install libhdf5-serial-dev`
+`sudo apt-get install python3-dev python3-tk python-imaging-tk`
+`sudo apt-get install libgtk-3-dev`
+`sudo add-apt-repository ppa:graphics-drivers/ppa`
+`sudo apt-get update`
+`sudo apt-get install nvidia-driver-418`
+3. Reboot to take effect `sudo reboot`
+4. Check existence of GPUs with `nvidia-smi`
+5. Continue `mkdir installers`
+`cd installers/`
+`wget https://developer.nvidia.com/compute/cuda/10.0/Prod/local_installers/cuda_10.0.130_410.48_linux`
+`mv cuda_10.0.130_410.48_linux cuda_10.0.130_410.48_linux.run`
+`chmod +x cuda_10.0.130_410.48_linux.run`
+`sudo ./cuda_10.0.130_410.48_linux.run --override`
+6. After EULA agreement, respond to all questions as yes or default except: 'Install NVIDIA Accelerated Graphics Driver for Linux...': reply with n; 'Enter CUDA Samples Location': reply with '/usr/local/cuda-9.2'.
+7. PATHS to bashrc file `sudo vim ~/.bashrc` and add `# NVIDIA CUDA Toolkit
+export PATH=/usr/local/cuda-10.0/bin:$PATH
+export LD_LIBRARY_PATH=/usr/local/cuda-10.0/lib64:$LD_LIBRARY_PATH` at the end of the file. Type :wq to save and quit. 
+8. `source ~/.bashrc`
+`nvcc -V`
+9. More updates and packages `sudo apt-get update`
+`sudo apt-get upgrade`
+`sudo apt-get install build-essential cmake unzip pkg-config`
+`sudo apt-get install libjpeg-dev libpng-dev libtiff-dev`
+`sudo apt-get install libavcodec-dev libavformat-dev libswscale-dev`
+`sudo apt-get install libgtk-3-dev`
+10. `cd ~`
+`wget -O opencv_contrib.zip https://github.com/opencv/opencv_contrib/archive/4.2.0.zip`
+`wget -O opencv.zip https://github.com/opencv/opencv/archive/4.2.0.zip`
+`unzip opencv.zip`
+`unzip opencv_contrib.zip`
+`mv opencv-4.2.0 opencv`
+`mv opencv_contrib-4.2.0 opencv_contrib`
+11. Setup Virtual Environment with Python `wget https://bootstrap.pypa.io/get-pip.py`
+`sudo python3 get-pip.py`
+`sudo pip install virtualenv virtualenvwrapper`
+`sudo rm -rf ~/get-pip.py ~/.cache/pip`
+12. Edit bashrc file again, `sudo vim ~/.bashrc` and insert 
 
 ## Results
 
