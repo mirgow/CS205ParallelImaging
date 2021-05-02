@@ -170,8 +170,7 @@ ln -s /usr/local/lib/python3.6/site-packages/cv2/python-3.6/cv2.cpython-36m-x86_
 
 #### Comparison Of Object Tracking Algorithms
 
-We compared the multithreaded implementations of the various image tracking algorithms in openCV. This verified the literature reported results that KCF tracking presented the best tradeoff between tracking quality and speed. 
-
+We compared the multithreaded implementations of the various image tracking algorithms in openCV. This verified the literature reported results that KCF tracking presented the best tradeoff between tracking quality and speed. We were nto able to benchmark the GOTURN tracker available in openCV since this deep learning based algorithm required too much memory overhead to initialize multiple trackers.
 
 | Algorithm  | Multithreaded FPS |
 | ------------- | ------------- |
@@ -181,7 +180,6 @@ We compared the multithreaded implementations of the various image tracking algo
 | MIL  | 1.5  |
 | TLD  | 0.645 |
 | MEDIANFLOW  | 3.333 |
-| GOTURN  | CSRT  |
 | CSRT | 1.111  |
 
 
