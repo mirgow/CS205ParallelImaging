@@ -79,18 +79,6 @@ int main( int argc, const char** argv ) {
 
 
   VideoWriter video("tracking.mp4", VideoWriter::fourcc('m','p','4','v'),10, Size(frame_width,frame_height),true);
-  // Get bounding boxes for first frame
-// selectROI's default behaviour is to draw box starting from the center
-// when fromCenter is set to false, you can draw box starting from top left corner
-// bool showCrosshair = true;
-// bool fromCenter = false;
-// cout << "\n==========================================================\n";
-// cout << "OpenCV says press c to cancel objects selection process" << endl;
-// cout << "It doesn't work. Press Escape to exit selection process" << endl;
-// cout << "\n==========================================================\n";
-// cv::selectROIs("MultiTracker", frame, bboxes, showCrosshair, fromCenter);
-// TODO run object detection on first frame instead of manually specifying bounding boxes.
-  
 
   HOGDescriptor hog;
   hog.setSVMDetector(HOGDescriptor::getDefaultPeopleDetector());
@@ -109,18 +97,13 @@ int main( int argc, const char** argv ) {
 
   // Specify the tracker type
   string trackerType = "KCF";
+  cout << trackerType; 
   // Create multitracker
   Ptr<MultiTracker> multiTracker = cv::MultiTracker::create();
 
 // Initialize multitracker
   for(int i=0; i < bboxes.size(); i++)
     multiTracker->add(createTrackerByName(trackerType), frame, Rect2d(bboxes[i]));  
-// ReWrite to create multiple trackers
-  for(int i=0; i < bboxes.size(); i++){
-    // Initialize tracker with box
-
-    // Add tracker to vector of tracker objects
-
   }
 
 
@@ -133,10 +116,8 @@ int main( int argc, const char** argv ) {
   while(cap.isOpened()) 
   {
     // get frame from the video
-    
     cap >> frame;
-    
-      // Track number of frames
+    // Track number of frames
     i++;
     cout << "Frame " << i << endl;
 
@@ -162,9 +143,6 @@ int main( int argc, const char** argv ) {
     {
       rectangle(frame, multiTracker->getObjects()[i], colors[i], 2, 1);
     }
-
-    // Show frame
-    //imshow("MultiTracker", frame);
     video.write(frame);
     // quit on x button
     if  (waitKey(1) == 27) break;

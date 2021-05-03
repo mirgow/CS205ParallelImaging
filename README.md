@@ -40,7 +40,7 @@ The time taken to copy one 4K image to and from the GPU is approximately 1ms.
 
 
 ## Application Technical Specs
-- Testing carried out on AWS Computing Platform, 1 g3.8xlarge instance, consisting of 2 NVIDIA Tesla M60 GPUs.
+- Testing carried out on AWS Computing Platform, 1 g3.8xlarge instance, consisting of 2 NVIDIA Tesla M60 GPUs. 32 cores (threads in parallel). 
 - Hybrid Parallel Processing Framework: [TO-DO]
   - 
 - 
@@ -53,6 +53,115 @@ The time taken to copy one 4K image to and from the GPU is approximately 1ms.
 - NVIDIA CUDA ver 10.0
 - CMake 3.10.2
 
+### Replicability Information
+This is a lengthy section, just because installation of OpenCV + CUDA on an AWS instance for GPU processing can be quite complicated. 
+1. Spin up an AWS instance with at least 2 GPUs. We used g3.8xlarge, but anything bigger in the G family or anything bigger than p3.8xlarge in the P family will work. 
+2. Install CUDA driver and toolkit, among other dependencies. 
+```
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install build-essential cmake unzip pkg-config
+sudo apt-get install gcc-6 g++-6
+sudo apt-get install screen
+sudo apt-get install libxmu-dev libxi-dev libglu1-mesa libglu1-mesa-dev
+sudo apt-get install libjpeg-dev libpng-dev libtiff-dev
+sudo apt-get install libavcodec-dev libavformat-dev libswscale-dev libv4l-dev
+sudo apt-get install libxvidcore-dev libx264-dev
+sudo apt-get install libopenblas-dev libatlas-base-dev liblapack-dev gfortran
+sudo apt-get install libhdf5-serial-dev
+sudo apt-get install python3-dev python3-tk python-imaging-tk
+sudo apt-get install libgtk-3-dev
+sudo add-apt-repository ppa:graphics-drivers/ppa
+sudo apt-get update
+sudo apt-get install nvidia-driver-418
+```
+3. Reboot to take effect `sudo reboot`
+4. Check existence of GPUs with `nvidia-smi`
+5. Continue 
+```
+mkdir installers
+cd installers/
+wget https://developer.nvidia.com/compute/cuda/10.0/Prod/local_installers/cuda_10.0.130_410.48_linux
+mv cuda_10.0.130_410.48_linux cuda_10.0.130_410.48_linux.run
+chmod +x cuda_10.0.130_410.48_linux.run
+sudo ./cuda_10.0.130_410.48_linux.run --override
+```
+6. After EULA agreement, respond to all questions as yes or default except: 'Install NVIDIA Accelerated Graphics Driver for Linux...': reply with n; 'Enter CUDA Samples Location': reply with '/usr/local/cuda-9.2'.
+7. PATHS to bashrc file `sudo vim ~/.bashrc` and add 
+```
+# NVIDIA CUDA Toolkit
+export PATH=/usr/local/cuda-10.0/bin:$PATH
+export LD_LIBRARY_PATH=/usr/local/cuda-10.0/lib64:$LD_LIBRARY_PATH
+```
+at the end of the file. Type :wq to save and quit. 
+
+8. `source ~/.bashrc`
+`nvcc -V`
+
+9. More updates and packages 
+``` 
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install build-essential cmake unzip pkg-config
+sudo apt-get install libjpeg-dev libpng-dev libtiff-dev
+sudo apt-get install libavcodec-dev libavformat-dev libswscale-dev
+sudo apt-get install libgtk-3-dev
+```
+10. Download, open OpenCV materials.
+``` 
+cd ~
+wget -O opencv_contrib.zip https://github.com/opencv/opencv_contrib/archive/4.2.0.zip
+wget -O opencv.zip https://github.com/opencv/opencv/archive/4.2.0.zip
+unzip opencv.zip
+unzip opencv_contrib.zip
+mv opencv-4.2.0 opencv
+mv opencv_contrib-4.2.0 opencv_contrib
+```
+11. Setup Virtual Environment with Python 
+```
+wget https://bootstrap.pypa.io/get-pip.py
+sudo python3 get-pip.py`
+sudo pip install virtualenv virtualenvwrapper
+sudo rm -rf ~/get-pip.py ~/.cache/pip
+```
+12. Edit bashrc file again, `sudo vim ~/.bashrc` and insert 
+```
+# virtualenv and virtualenv wrapper
+export WORKON_HOME=$HOME/.virtualenvs
+export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
+source /usr/local/bin/virtualenvwrapper.sh
+```
+13. Run `source ~/.bashrc`
+14. Create python virtual environment
+```
+mkvirtualenv opencv_cuda -p python3
+pip install numpy
+cd ~/opencv
+mkdir build
+cd build
+```
+15. use `nvidia-smi` to find GPU model. If using g3.8xlarge, it should be a M60. Go to https://developer.nvidia.com/cuda-gpus to find compute capability. That value will substitute the value placed after `CUDA_ARCH_BIN=` in the next command.
+16. Run cmake command, might take around 5 minutes. Remember to replace `CUDA_ARCH_BIN=` value!
+```
+cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D INSTALL_PYTHON_EXAMPLES=ON -D INSTALL_C_EXAMPLES=OFF -D OPENCV_ENABLE_NONFREE=ON -D WITH_CUDA=ON -D WITH_CUDNN=OFF -D OPENCV_DNN_CUDA=ON -D ENABLE_FAST_MATH=1 -D CUDA_FAST_MATH=1 -D CUDA_ARCH_BIN=5.2 -D WITH_CUBLAS=1 -D OPENCV_EXTRA_MODULES_PATH=~/opencv_contrib/modules -D HAVE_opencv_python3=ON -D PYTHON_EXECUTABLE=~/.virtualenvs/opencv_cuda/bin/python -D BUILD_EXAMPLES=ON -D OPENCV_GENERATE_PKGCONFIG=ON ..
+```
+17. Build the OpenCV library and implicate the maximum number of threads for doing so. Here, using all cores. Should take around 20 minutes. Press enter on keyboard if using PuTTY to prevent knock-out from system for being idle for 15 minutes. 
+```
+make -j$(nproc)
+sudo make install
+sudo ldconfig
+```
+18. Continue with sym-link to environment
+```
+ls -l /usr/local/lib/python3.6/site-packages/cv2/python-3.6
+cd ~/.virtualenvs/opencv_cuda/lib/python3.6/site-packages/
+ln -s /usr/local/lib/python3.6/site-packages/cv2/python-3.6/cv2.cpython-36m-x86_64-linux-gnu.so cv2.so
+```
+19. If logging out of node and coming back, to restart virtual environment, use `source ~/.virtualenvs/opencv_cuda/bin/activate`
+20. With using g++ compiler to run C++ codes, insert ``pkg-config opencv4 --cflags --libs`` as one of the flags to indicate the libraries to use. 
+
+
+
 ## Results
 
 
@@ -61,8 +170,7 @@ The time taken to copy one 4K image to and from the GPU is approximately 1ms.
 
 #### Comparison Of Object Tracking Algorithms
 
-We compared the multithreaded implementations of the various image tracking algorithms in openCV. This verified the literature reported results that KCF tracking presented the best tradeoff between tracking quality and speed. 
-
+We compared the multithreaded implementations of the various image tracking algorithms in openCV. This verified the literature reported results that KCF tracking presented the best tradeoff between tracking quality and speed. We were nto able to benchmark the GOTURN tracker available in openCV since this deep learning based algorithm required too much memory overhead to initialize multiple trackers.
 
 | Algorithm  | Multithreaded FPS |
 | ------------- | ------------- |
@@ -72,7 +180,6 @@ We compared the multithreaded implementations of the various image tracking algo
 | MIL  | 1.5  |
 | TLD  | 0.645 |
 | MEDIANFLOW  | 3.333 |
-| GOTURN  | CSRT  |
 | CSRT | 1.111  |
 
 
