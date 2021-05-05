@@ -41,8 +41,9 @@ The time taken to copy one 4K image to and from the GPU is approximately 1ms.
 
 ## Application Technical Specs
 - Testing carried out on AWS Computing Platform, 1 g3.8xlarge instance, consisting of 2 NVIDIA Tesla M60 GPUs. 32 cores (threads in parallel). 
-- Hybrid Parallel Processing Framework: [TO-DO]
-  - 
+- Hybrid Parallel Processing Framework: OpenCV CUDA multi-GPU use + OpenMP. (Hybrid distributed and shared-memory application)
+  - OpenCV CUDA module allows the optimization of code through GPUs, and with `cv::cuda::setDevice` the partitioning of different sections of code into separate GPUs. All usage of multiple GPUs has to be hardcoded/specified in the code. In our case, that would be either applying `cv::cuda::setDevice(0)` or `cv::cuda::setDevice(1)` before a chunk of code to tell the module to copy over information and carry out operations on either the frist or second GPU on our 2-GPU g3.8xlarge instance. This is the distributed-memory part of our application, as we are forced to copy over information from CPU --> GPU. 
+  - OpenMP then enables us to optimize the code in the massive multi-threading environment of GPUs. Employing `#pragma` statements in the code and specifying thread count greatly speeds up operations along both GPUs. This is the shared-memory aspect of our model, as OpenMP is applied as multi-threading on one node/GPU, and all the memory is contained in the GPU. 
 - 
 
 ### Software Specs
@@ -202,4 +203,7 @@ The process of updating each object tracker with the new frame can be paralleliz
 - https://opencv.org/platforms/cuda/
 - https://queue.acm.org/detail.cfm?id=2206309
 - https://www.analyticsvidhya.com/blog/2019/09/feature-engineering-images-introduction-hog-feature-descriptor/
+- https://github.com/opencv/opencv/tree/master/samples/gpu
+- https://medium.com/dropout-analytics/opencv-cuda-for-videos-f3dcf346e398
+- 
 
