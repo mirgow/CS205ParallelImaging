@@ -9,6 +9,12 @@ As computer vision applications with HOG stand now,
 
 tl;dr: Speeding up object tracking.
 
+#### How're We Exploring This?
+
+We're utilizing the beautiful OpenCV library in C++ for simpler and more efficient commands in video processing and machine vision. OpenCV conveniently can also be deployed with CUDA, the parallel computing platform developed by NVIDIA to rapidly speed up code, particularly on a GPU. That, combined with the flexibility of operating on C++ (over python, which has identical functionality), can enable use of both multiple GPUs and multithreading through OpenMP. 
+
+It's also worth to note the documentation on OpenCV+CUDA C++ framework is pretty terrible, and almost devoid for the python version (another reason we preferred use on C++).
+
 #### HOG Algorithm
 This is a feature descriptor that extracts both the gradient and orientation of the edges of features in an image, which are then pooled into localized parts. Then, a unique histogram is generated for each part. 
 Steps include:
