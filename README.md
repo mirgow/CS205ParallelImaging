@@ -32,12 +32,18 @@ Steps include:
 
 ### Frames Preprocessing
 
-| Location  | Operation | Frame Count | Time/Frame (ms/frame) | FPS |
+All of these timing results include uploading the frames to the GPU, testing here the difference in preprocessing images on CPU or GPU. In the case where the location is CPU, frames are uploaded and downloaded at the end. If location is GPU, frames are uploaded before and downloaded after. 
+| Location  | Operation | Frame Count / Quality | Time/Frame (ms/frame) | FPS |
 | ------------- | ------------- | ------ | ----- | ----- |
-| CPU | parsing frames  | 61 | 6.331 | 157.965 |
-| CPU | greyscaling frames  | 61 | 6.755 | 148.048 | 
-| CPU | resizing frames | 61 | 11.692 | 85.528 | 
-| CPU | greyscaling+resizing frames  | 61 | 9.318 | 107.316 |  
+| CPU | greyscaling frames  | 25 / 4k | 74.391 | 13.443 | 
+| CPU | resizing frames | 25 / 4k | 48.810 | 20.487 | 
+| CPU | greyscaling+resizing frames  | 25 / 4k | 75.414 | 13.260 |  
+| GPU | parsing frames | 25 / 4k | 48.593 | 20.579 |
+| GPU | greyscaling frames | 25 / 4k | 49.335 | 20.269 |
+| GPU | resizing frames | 25 / 4k | 53.751 | 18.604 |
+| GPU | greyscaling+resizing frames | 25 / 4k | 52.812 | 18.935 |
+
+Note: Video Quality for HD is defined as a 1920x1080 frame size, and 4k as a 3840x2160 frame size (in pixels). 
 
 ### Main Algorithms
 
