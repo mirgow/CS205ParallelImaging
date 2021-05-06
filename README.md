@@ -23,7 +23,7 @@ Steps include:
 3. Generate histograms, most striaghtforward method adds up frequency of pixels based on their orientations. 
 4. Combine features from smaller matrix chunks into larger.
 5. Generate final overlay, which would appear as something like this:
-![HOG on dog example]("https://github.com/mirgow/CS205ParallelImaging/blob/main/img/doghog.png")
+![HOG on dog example](https://github.com/mirgow/CS205ParallelImaging/blob/main/img/doghog.png)
 
 7. An identifier placed on top can now use the HOG to identify an object. 
 
@@ -209,7 +209,7 @@ We compared the multithreaded implementations of the various image tracking algo
 
 The process of updating each object tracker with the new frame can be parallelized across threads usign openMP. The speedups achieved using different numbers of threads is shown on the graph. Overall we were able to achieve a maximum 3.6x speedup using openMP. 
 
-![OpenMP graph]("https://github.com/mirgow/CS205ParallelImaging/blob/main/img/openmptracking.png")
+![OpenMP graph](https://github.com/mirgow/CS205ParallelImaging/blob/main/img/openmptracking.png)
 
 
 ### Object Detection
