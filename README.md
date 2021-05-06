@@ -24,6 +24,14 @@ Steps include:
 
 ## Initial Benchmarking
 
+### Frames Preprocessing
+
+| Location  | Operation | Frame Count | Time/Frame (ms/frame) | FPS |
+| ------------- | ------------- | ------ | ----- | ----- |
+| CPU | parsing frames  | 61 | 6.331 | 157.965 |
+| CPU | greyscaling frames  | 61 | 6.755 | 148.048 | 
+| CPU | resizing frames | 61 | 11.692 | 85.528 | 
+| CPU | greyscaling+resizing frames  | 61 | 9.318 | 107.316 |  
 
 ### Main Algorithms
 
