@@ -23,7 +23,7 @@ Steps include:
 3. Generate histograms, most striaghtforward method adds up frequency of pixels based on their orientations. 
 4. Combine features from smaller matrix chunks into larger.
 5. Generate final overlay, which would appear as something like this:
-![HOG on dog example]("/img/doghog.png")
+![HOG on dog example]("https://github.com/mirgow/CS205ParallelImaging/blob/main/img/doghog.png")
 
 7. An identifier placed on top can now use the HOG to identify an object. 
 
@@ -203,10 +203,12 @@ We compared the multithreaded implementations of the various image tracking algo
 
 The process of updating each object tracker with the new frame can be parallelized across threads usign openMP. The speedups achieved using different numbers of threads is shown on the graph. Overall we were able to achieve a maximum 3.6x speedup using openMP. 
 
-![OpenMP graph]("./img/openmptracking.png")
+![OpenMP graph]("https://github.com/mirgow/CS205ParallelImaging/blob/main/img/openmptracking.png")
 
 
-### 
+### Object Detection
+
+An alternative to online object tracking algorithms is simply to treat each frame as independent and detect objects as they come in. This has the advantage of eliminating any dependencies on the previous video frame but does not track an individually identifyable object over time. We used the yolov3 pretrained deeplearning model with openCL support. The baseline implementation was able to run at approximately 5 fps with around 40% utilization of a single Tesla M60 GPU. 
 
 ## Sources
 
