@@ -2,10 +2,8 @@
 
 ## What're We Exploring?
 
-Massively speeding up the detection of objects in video, with an emphasis on histogram of oriented gradients (HOG) algorithms. 
-This poses to help in realms such as sports analytics, medical scanning, surveillancce and security, self-driving cars, and more. 
-As computer vision applications with HOG stand now, 
-
+Massively speeding up the detection of objects in video, and tracking their movements. We've found current common methods to operate at slow real-time speeds, such as .25 FPS. 
+Optimizing and speeding up an object detection algorithm poses to help in realms such as sports analytics, medical scanning, surveillancce and security, self-driving cars, and more. We were initially focused on the Histogram of Oriented Gradients (HOG) algorithm, but through testing and comparison of other object tracking methods, we've identified other faster baseline algorithms such as Kernalized Correlation Filters (KCF), as we'll demonstrate below. Taking these algorithms, we've gone on to create and apply some parallel applications of the code to further improve performance, increasing speedup to FPS rates above 10. Methods and all replicability information are outlined below. 
 
 tl;dr: Speeding up object tracking.
 
@@ -33,15 +31,21 @@ Steps include:
 ### Frames Preprocessing
 
 All of these timing results include uploading the frames to the GPU, testing here the difference in preprocessing images on CPU or GPU. In the case where the location is CPU, frames are uploaded and downloaded at the end. If location is GPU, frames are uploaded before and downloaded after. 
+These were run through the script [comparingvideorates.cpp](https://github.com/mirgow/CS205ParallelImaging/blob/main/src/comparingvideorates.cpp), with sample videos ped1, ped1_Trim, and ped1test, 4k videos respectively at 597, 299, and 25 frames. 
+
 | Location  | Operation | Frame Count / Quality | Time/Frame (ms/frame) | FPS |
 | ------------- | ------------- | ------ | ----- | ----- |
-| CPU | greyscaling frames  | 25 / 4k | 74.391 | 13.443 | 
-| CPU | resizing frames | 25 / 4k | 48.810 | 20.487 | 
-| CPU | greyscaling+resizing frames  | 25 / 4k | 75.414 | 13.260 |  
+| CPU | greyscaling frames  | 299 / 4k | 60.064 | 16.649 | 
+| CPU | resizing frames | 299 / 4k | 20.909 | 47.827 | 
+| CPU | greyscaling+resizing frames  | 25 / 4k | 72.907 | 13.716 |  
+| CPU | greyscaling+resizing frames  | 299 / 4k | 55.245 | 18.101 | 
+| CPU | greyscaling+resizing frames  | 597 / 4k | 54.123 | 18.477 | 
 | GPU | parsing frames | 25 / 4k | 48.593 | 20.579 |
-| GPU | greyscaling frames | 25 / 4k | 49.335 | 20.269 |
-| GPU | resizing frames | 25 / 4k | 53.751 | 18.604 |
-| GPU | greyscaling+resizing frames | 25 / 4k | 52.812 | 18.935 |
+| GPU | greyscaling frames | 299 / 4k | 58.305 | 17.151 |
+| GPU | resizing frames | 299 / 4k | 25.860 | 38.671 |
+| GPU | greyscaling+resizing frames | 25 / 4k | 82.643 | 12.100 |
+| GPU | greyscaling+resizing frames | 299 / 4k | 59.781 | 16.728 |
+| GPU | greyscaling+resizing frames | 597 / 4k | 59.170 | 16.910 |
 
 Note: Video Quality for HD is defined as a 1920x1080 frame size, and 4k as a 3840x2160 frame size (in pixels). 
 
