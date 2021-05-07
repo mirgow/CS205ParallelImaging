@@ -15,6 +15,8 @@
 #include <opencv2/opencv.hpp>
 //#include <opencv2/highgui.hpp>
 #include <opencv2/videoio.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <omp.h>
 
 using namespace cv;
 using namespace std;
@@ -35,7 +37,24 @@ int main(int argc, const char* argv[])
     cv::Mat frame;
     cv::VideoCapture reader(fname);
 
+    int frame_width = reader.get(cv::CAP_PROP_FRAME_WIDTH);
+    int frame_height = reader.get(cv::CAP_PROP_FRAME_HEIGHT);
+    int frame_count = reader.get(CAP_PROP_FRAME_COUNT);
+
+    cout << "frame width and frame height: " << frame_width << '\t' << frame_height << '\n';
+    cout << "frame count: " << frame_count << '\n';
+
+    cv::VideoWriter video("output.mov", cv::VideoWriter::fourcc('m','p','4','v'), 20, Size(frame_width*0.5,frame_height*0.5), true);
+    if(!video.isOpened()) {
+        cout <<"Error! Unable to open video file for output." << '\n';
+        return -1;
+    }
+
+
+    auto star = std::chrono::steady_clock::now( );
     cv::cuda::GpuMat d_frame;
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now( ) - star );
+    cout << "milliseconds to initialize GPU: " << elapsed.count( ) << '\n';
     //cv::Ptr<cv::cudacodec::VideoReader> d_reader = cv::cudacodec::createVideoReader(fname);
 
     cv::TickMeter tm;
@@ -44,25 +63,49 @@ int main(int argc, const char* argv[])
 
     int gpu_frame_count=0, cpu_frame_count=0;
 
-    for (;;)
+    //#pragma omp parallel for shared(cpu_times, video)
+    for (int i = 0; i < frame_count; i++)
     {
+        Mat resized;
+        Mat grayscale;
+        Mat frame;
+
         tm.reset(); tm.start();
         if (!reader.read(frame))
-            break;
-        Mat grayscale;
-        Mat resized;
-        // convert frame here to grayscale
-        cvtColor(frame, grayscale, COLOR_RGBA2GRAY);
-        // convert grayscale frame to 1/4 size
-        resize(grayscale, resized, Size(), .5, .5, cv::INTER_LANCZOS4);
+            continue;
+
+        // greyscaling (on CPU, so long as it isn't after the d_frame.upload() function)
+        //cv::cvtColor(frame, frame, cv::COLOR_BGR2GRAY);
+        //cv::cvtColor(frame, frame, cv::COLOR_GRAY2BGR);
+
+        // resizing (on CPU, again before the d_frame.upload() function)
+        //resize(frame, frame, Size(), 0.5, 0.5, INTER_AREA);
+
+        // line below uploads to GPU
+        d_frame.upload(frame);
+
+        // greyscaling (on GPU)
+        cv::cvtColor(frame, frame, cv::COLOR_BGR2GRAY);
+        cv::cvtColor(frame, frame, cv::COLOR_GRAY2BGR);
+
+        // resizing (on GPU)
+        resize(frame, frame, Size(), 0.5, 0.5, INTER_AREA);
+
+        // line below downloads from GPU
+        d_frame.download(frame);
+
+
         tm.stop();
         cpu_times.push_back(tm.getTimeMilli());
-        cpu_frame_count++;
+        //cpu_frame_count++;
+
+        video.write(frame);
+        //video << frame;
 
         //cv::imshow("CPU", frame);
 
-        if (cv::waitKey(3) > 0)
-            break;
+        //if (cv::waitKey(3) > 0)
+            //break;
     }
 
     // for (;;)
@@ -91,29 +134,10 @@ int main(int argc, const char* argv[])
 
     double cpu_avg = std::accumulate(cpu_times.begin(), cpu_times.end(), 0.0) / cpu_times.size();
 
-    std::cout << "CPU : Avg : " << cpu_avg << " ms FPS : " << 1000.0 / cpu_avg << " Frames " << cpu_frame_count << std::endl;
+    std::cout << "CPU : Avg : " << cpu_avg << " ms FPS : " << 1000.0 / cpu_avg << " Frames " << frame_count << std::endl;
 
 
-
-    if (gpu_times.empty()) {
-        std::cout << "GPU EMPTY\n";
-        return -1;
-    }
-
-    if (!cpu_times.empty() && !gpu_times.empty())
-    {
-        std::cout << std::endl << "Results:" << std::endl;
-
-        std::sort(cpu_times.begin(), cpu_times.end());
-        std::sort(gpu_times.begin(), gpu_times.end());
-
-        double cpu_avg = std::accumulate(cpu_times.begin(), cpu_times.end(), 0.0) / cpu_times.size();
-        double gpu_avg = std::accumulate(gpu_times.begin(), gpu_times.end(), 0.0) / gpu_times.size();
-
-        std::cout << "CPU : Avg : " << cpu_avg << " ms FPS : " << 1000.0 / cpu_avg << " Frames " << cpu_frame_count << std::endl;
-        std::cout << "GPU : Avg : " << gpu_avg << " ms FPS : " << 1000.0 / gpu_avg << " Frames " << gpu_frame_count << std::endl;
-    }
-
+    video.release();
     return 0;
 }
 
