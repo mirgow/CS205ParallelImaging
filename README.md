@@ -13,22 +13,23 @@ We're utilizing the beautiful OpenCV library in C++ for simpler and more efficie
 
 It's also worth to note the documentation on OpenCV+CUDA C++ framework is pretty terrible, and almost nonexistent for the python version (another reason we preferred on C++).
 
-One significant drawback to this method is the inability to execute complicated functions in the GPU space, as there are [limited operations](https://docs.opencv.org/3.4/d0/d60/classcv_1_1cuda_1_1GpuMat.html) that can be called on a `GpuMat` instance. So, tracking operations will have to be held in the CPU memory. However, we came with workarounds.
+One significant drawback to this method is the inability to execute complicated functions in the GPU space, as there are [limited operations](https://docs.opencv.org/3.4/d0/d60/classcv_1_1cuda_1_1GpuMat.html) that can be called on a `GpuMat` instance. So, tracking operations will have to be held in the CPU memory. However, we came up with workarounds.
 
 #### Kernelized Correlation Filters (KCF) Algorithm
 
-This is an algorithm that produces the optimal image filter such that there is a fitted response for the filtration with the input image (in our case, a humanoid). After that initial identification, multiple 'trackers' are made, with rectangular boxes placed around them, follow the movement of the objects (humans).
+This is an algorithm that produces the optimal image filter such that there is a fitted response for the filtration with the input image (in our case, a humanoid). After that initial identification, multiple 'trackers' are made, with rectangular boxes placed around them, follow the movement of the objects (humans). More information about the KCF algorithm can be read about [here](<https://cw.fel.cvut.cz/b172/courses/mpv/labs/4_tracking/4b_tracking_kcf#:~:text=References-,Tracking%20with%20Correlation%20Filters%20(KCF),by%20a%20rectangular%20bounding%20box.&text=The%20filter%20is%20trained%20from,new%20position%20of%20the%20target>)
+
 Steps include:
 
 1. Finding of optimal linear filter, solved as a least squares problem. Adds complexity of O(n^2)
-2. Fourier transformations rapidaly speed up solution process.
+2. Fourier transformations rapidly speed up solution process.
 3. Map input data through a non-linear function, leading to kernelized ridge regression.
 4. Obtain linear correlation tracker through the kernel, in our case a RBF Guassian kernel.
 5. Update through every frame with minimal distance.
 
 #### Schematic, Proposed Solution
 
-Sketched and modeled below is the rought ideas + framework to the project.
+Sketched and modeled below is the rough ideas + framework to the project.
 ![frameworkgraph](https://github.com/mirgow/CS205ParallelImaging/blob/main/img/Framework.jpg)
 
 As shown, we used two main methods to speedup our object tracking.
@@ -73,17 +74,17 @@ We initially benchmarked two main algorithms with sequential execution on a CPU;
 
 ### Overheads
 
-We also quantified the main releveant overheads for moving and resizing images on the CPU and GPU.
+We also quantified the main relevant overheads for moving and resizing images on the CPU and GPU.
 
-| Overheads | Read in one 4k frame using OpenCV | Copy image to/back from GPU | GPU initilization | Resizing on CPU | Resizing on GPU |
-| --------- | --------------------------------- | --------------------------- | ----------------- | --------------- | --------------- |
-| Time (ms) | 20                                | 1                           | ~200              | 27              | 7               |
+| Overheads | Read in one 4k frame using OpenCV | Copy image to/back from GPU | GPU initialization | Resizing on CPU | Resizing on GPU |
+| --------- | --------------------------------- | --------------------------- | ------------------ | --------------- | --------------- |
+| Time (ms) | 20                                | 1                           | ~200               | 27              | 7               |
 
 ## Application Technical Specs
 
--   Testing carried out on AWS Computing Platform, 1 g3.8xlarge instance, consisting of 2 NVIDIA Tesla M60 GPUs. 32 cores (threads in parallel).
+-   Testing was carried out on AWS Computing Platform, specifically on one g3.8xlarge instance, consisting of 2 NVIDIA Tesla M60 GPUs. 32 cores (threads in parallel).
 -   Hybrid Parallel Processing Framework: OpenCV CUDA multi-GPU use + OpenMP. (Hybrid distributed and shared-memory application)
-    -   OpenCV CUDA module allows the optimization of code through GPUs, and with `cv::cuda::setDevice` the partitioning of different sections of code into separate GPUs. All usage of multiple GPUs has to be hardcoded/specified in the code. In our case, that would be either applying `cv::cuda::setDevice(0)` or `cv::cuda::setDevice(1)` before a chunk of code to tell the module to copy over information and carry out operations on either the frist or second GPU on our 2-GPU g3.8xlarge instance. This is the distributed-memory part of our application, as we are forced to copy over information from CPU --> GPU.
+    -   OpenCV CUDA module allows the optimization of code through GPUs, and with `cv::cuda::setDevice` the partitioning of different sections of code into separate GPUs. All usage of multiple GPUs has to be hardcoded/specified in the code. In our case, that would be either applying `cv::cuda::setDevice(0)` or `cv::cuda::setDevice(1)` before a chunk of code to tell the module to copy over information and carry out operations on either the first or second GPU on our 2-GPU g3.8xlarge instance. This is the distributed-memory part of our application, as we are forced to copy over information from CPU to the GPU.
     -   OpenMP then enables us to optimize the code in the massive multi-threading environment of GPUs. Employing `#pragma` statements in the code and specifying thread count greatly speeds up operations along both GPUs. This is the shared-memory aspect of our model, as OpenMP is applied as multi-threading on one node/GPU, and all the memory is contained in the GPU.
 -
 
@@ -276,7 +277,7 @@ source ~/.virtualenvs/opencv_cuda/bin/activate
 export OMP_NUM_THREADS=16
 ```
 
-At this point, we're assuming you've downloaded our github repo, and have access to the scripts in /src and test examples in /data
+At this point, we're assuming you've downloaded our Github repo, and have access to the scripts in /src and test examples in /data
 
 For the scripts we've placed in our repo, the backbones of them are obtained from our sources, so they're not original scripts. However, we have edited and reformatted them to a great degree.
 
@@ -328,7 +329,7 @@ The default running should look something like this, but with every frame in bet
 
 The output video will be automatically saved as 'trackingupdated.mp4'.
 
-Some adjustables within the script:
+Some adjustable areas within the script:
 
 -   Line 69 `float factor` can be changed to anything between 0-1. It represents the downscaling of the 4k input video. Beware, lower values lead to lower accuracy (higher FN rates) but higher FPS. We defaulted at .25, so producing 1/2 the quality of HD video.
 -   Lines 213-214 with the `pragma`'s are the implementation of OpenMP over the trackers. Can deactivate to test FPS (will lower).
@@ -336,7 +337,7 @@ Some adjustables within the script:
 
 ### YOLO object Detection
 
-The yolo object detection algorithm can be run using the `yolo_detectionv2.cpp` script. YOLO is a deep learning based object detection method notable for only requireing a single forward pass through the network. It can be compiled using the standard flags for opencv.
+The yolo object detection algorithm can be run using the `yolo_detectionv2.cpp` script. YOLO is a deep learning based object detection method notable for only requiring a single forward pass through the network. It can be compiled using the standard flags for OpenCV.
 
 ```
 g++ yolo_detectionv2.cpp `pkg-config opencv4 --cflags --libs` -o yolo
@@ -396,27 +397,26 @@ So, there definitely is a tradeoff, particularly with the downsizing scale, as t
 
 ### Deep learning for Object Detection
 
-An alternative to online object tracking algorithms is simply to treat each frame as independent and detect objects as they come in. This has the advantage of eliminating any dependencies on the previous video frame but does not track an individually identifyable object over time. We used the yolov3 pretrained deeplearning model with openCL support. The baseline implementation was able to run at approximately 5 fps with around 40% utilization of a single Tesla M60 GPU. Note the the openCL implementation was unable to take advantage of multiple GPUs. Unfortunately we did not get to try out the cuda accelerated version since the cuDNN library would not work with the Tesla M60. The openCL version was actually slower than the CPU. However, we would expect much better perfromance using the GPU version with CUDA. Qualitatively, the yolo object detection gives different results than the tracking algorithms. Each frame is evaluated independently so there is less coherence in the location of detected objects across frames. We can also see how yolo is able to assign a class label to the objects it detects.
+An alternative to online object tracking algorithms is simply to treat each frame as independent and detect objects as they come in. This has the advantage of eliminating any dependencies on the previous video frame but does not track an individually identifiable object over time. We used the yolov3 pre-trained deep learning model with openCL support. The baseline implementation was able to run at approximately 5 fps with around 40% utilization of a single Tesla M60 GPU. Note the the openCL implementation was unable to take advantage of multiple GPUs. Unfortunately we did not get to try out the CUDA accelerated version since the cuDNN library would not work with the Tesla M60. The openCL version was actually slower than the CPU. However, we would expect much better performance using the GPU version with CUDA. Qualitatively, the yolo object detection gives different results than the tracking algorithms. Each frame is evaluated independently so there is less coherence in the location of detected objects across frames. We can also see how yolo is able to assign a class label to the objects it detects.
 
 | Backend | FPS |
 | ------- | --- |
 | CPU     | 8   |
 | openCL  | 5   |
 
+## Files
 
-## DEMOS
+`src/`
 
-
-### Object Tracking
-!["Tracking"](https://github.com/mirgow/CS205ParallelImaging/blob/main/img/tracking.gif)
-
-### Object Detection
-
-!["Detection"](https://github.com/mirgow/CS205ParallelImaging/blob/main/img/detection2.gif)
-
-### Livestream
-
-!["Live Tracking"](https://github.com/mirgow/CS205ParallelImaging/blob/main/img/livedemo.gif)
+-   `ImageLoading.cpp`: tests the time to copy images to PGU
+-   `comparingvideorates.cpp`: used to create initial benchmarks for frames preprocessing. See more and results at [Frames Preprocessing](#frames-preprocessing)
+-   `dogongrass.png`: used for image loading testing
+-   `livetracking.cpp`: demo with tracking for live video stream
+-   `objectclasses.txt`: labels for yolo detection
+-   `omp_tracking_updated.cpp`: main file that implements of tracking people in a video
+-   `yolo_detectionv2.cpp`: object detection with YOLO algorithm
+-   `yolov3.cfg`: configuration file needed for `yolo_detectionv2.cpp`
+-   `yolov3.weights`: weights file needed for `yolo_detectionv2.cpp`
 
 ## Sources
 
