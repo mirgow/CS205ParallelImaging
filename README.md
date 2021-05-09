@@ -15,17 +15,14 @@ It's also worth to note the documentation on OpenCV+CUDA C++ framework is pretty
 
 One significant drawback to this method is the inability to execute complicated functions in the GPU space, as there are [limited operations](https://docs.opencv.org/3.4/d0/d60/classcv_1_1cuda_1_1GpuMat.html) that can be called on a `GpuMat` instance. So, tracking operations will have to be held in the CPU memory. However, we came with workarounds. 
 
-#### HOG Algorithm
-This is a feature descriptor that extracts both the gradient and orientation of the edges of features in an image, which are then pooled into localized parts. Then, a unique histogram is generated for each part. 
+#### Kernelized Correlation Filters (KCF) Algorithm
+This is an algorithm that produces the optimal image filter such that there is a fitted response for the filtration with the input image (in our case, a humanoid). After that initial identification, multiple 'trackers' are made, with rectangular boxes placed around them, follow the movement of the objects (humans). 
 Steps include:
-1. Gradient for every pixel in image, formation of matrices in x and y directions.
-2. Pythagoreas theorem to evaluate magnitude/direction for each pixel.
-3. Generate histograms, most striaghtforward method adds up frequency of pixels based on their orientations. 
-4. Combine features from smaller matrix chunks into larger.
-5. Generate final overlay, which would appear as something like this:
-![HOG on dog example](https://github.com/mirgow/CS205ParallelImaging/blob/main/img/doghog.png)
-
-7. An classifier, such as an SVM placed on top of these features can now identify an object. 
+1. Finding of optimal linear filter, solved as a least squares problem. Adds complexity of O(n^2)
+2. Fourier transformations rapidaly speed up solution process. 
+3. Map input data through a non-linear function, leading to kernelized ridge regression. 
+4. Obtain linear correlation tracker through the kernel, in our case a RBF Guassian kernel.
+5. Update through every frame with minimal distance. 
 
 #### Schematic, Proposed Solution
 Sketched and modeled below is the rought ideas + framework to the project. 
