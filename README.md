@@ -11,7 +11,7 @@ tl;dr: Speeding up object tracking.
 
 We're utilizing the beautiful OpenCV library in C++ for simpler and more efficient commands in video processing and machine vision. OpenCV conveniently can also be deployed with CUDA, the parallel computing platform developed by NVIDIA to rapidly speed up code, particularly on a GPU. That, combined with the flexibility of operating on C++ (over python, which has identical functionality), can enable use of both multiple GPUs and multithreading through OpenMP. 
 
-It's also worth to note the documentation on OpenCV+CUDA C++ framework is pretty terrible, and almost devoid for the python version (another reason we preferred use on C++).
+It's also worth to note the documentation on OpenCV+CUDA C++ framework is pretty terrible, and almost nonexistent for the python version (another reason we preferred on C++).
 
 One significant drawback to this method is the inability to execute complicated functions in the GPU space, as there are [limited operations](https://docs.opencv.org/3.4/d0/d60/classcv_1_1cuda_1_1GpuMat.html) that can be called on a `GpuMat` instance. So, tracking operations will have to be held in the CPU memory. However, we came with workarounds. 
 
@@ -25,14 +25,24 @@ Steps include:
 5. Generate final overlay, which would appear as something like this:
 ![HOG on dog example](https://github.com/mirgow/CS205ParallelImaging/blob/main/img/doghog.png)
 
-7. An identifier placed on top can now use the HOG to identify an object. 
+7. An classifier, such as an SVM placed on top of these features can now identify an object. 
 
 #### Schematic, Proposed Solution
 Sketched and modeled below is the rought ideas + framework to the project. 
 ![frameworkgraph](https://github.com/mirgow/CS205ParallelImaging/blob/main/img/Framework.jpg)
 
 
+As shown, we used two main methods to speedup our object tracking.
+
+1. Parallelize multiple object trackers across multiple threads
+2. Downsize the image prior to detecting objects. 
+
+The second method is a little cheap and leads to tradeoffs in the quality of object tracking a we will show below. However, this step was necessary in order to reach our goal of object detection on a live video feed and presented interesting challenges in terms of how we could speed up the downsizing operation using a GPU.
+
+
 ## Initial Benchmarking
+
+
 
 ### Frames Preprocessing
 
@@ -58,6 +68,8 @@ Note: Video Quality for 4k is described as a 3840x2160 frame size (in pixels).
 
 ### Main Algorithms
 
+We initially benchmarked two main algorithms with sequential execution on a CPU; HOG object detection on KCF object tracking. The initial results were very slow on the order of seconds per frame rather than frames per second.
+
 | Algorithm  | Sequential FPS |
 | ------------- | ------------- |
 | HOG object detection  | 0.238  |
@@ -65,11 +77,11 @@ Note: Video Quality for 4k is described as a 3840x2160 frame size (in pixels).
 
 ### Overheads
 
-Quantified with scripts in src directory,
-| Overheads | Read one 4k image using OpenCV | Copy image to/back from GPU | GPU initilization | Resizing on CPU | Resizing on GPU |
+We also quantified the main releveant overheads for moving and resizing images on the CPU and GPU.
+
+| Overheads | Read in one 4k frame using OpenCV | Copy image to/back from GPU | GPU initilization | Resizing on CPU | Resizing on GPU |
 | -- |-- |-- |-- |-- | -- |
 | Time (ms) | 20 | 1 | ~200 | 27 | 7 |
-
 
 
 ## Application Technical Specs
@@ -227,7 +239,7 @@ GPU timing of only resizing requires highlighting of lines 91 and 92; timing of 
 
 ### KCF Object Tracking
 Running [omp_tracking_updated.cpp](https://github.com/mirgow/CS205ParallelImaging/blob/main/src/omp_tracking_updated.cpp) to work with actual implementation of tracking people in a video. 
-Create the executable:
+Create the executable (note the `-fopenmp` flag must be used.):
 ```
 g++ omp_tracking_updated.cpp -fopenmp `pkg-config opencv4 --cflags --libs` -o omp_tracking_updated
 ```
@@ -242,14 +254,29 @@ Some adjustables within the script:
 - Lines 213-214 with the `pragma`'s are the implementation of OpenMP over the trackers. Can deactivate to test FPS (will lower).
 
 
-## Results
+### YOLO object Detection
 
+The yolo object detection algorithm can be run using the `yolo_detectionv2.cpp` script. YOLO is a deep learning based object detection method notable for only requireing a single forward pass through the network. It can be compiled using the standard flags for opencv.
+
+```
+g++ yolo_detectionv2.cpp `pkg-config opencv4 --cflags --libs` -o yolo
+```
+To run, the neural network weights and configuration file must be downloaded and placed in the same directory as the executable.
+
+
+## Results
 
 ### Multithreaded Object Tracking
 
+#### KCF results
+
+For the tracking algorithms a set of objects is first detected using the HOG object detector with the SVM trained to detect pedestrians. These objects are then tracked for the rest of the video. The process of updating each object tracker with the new frame can be parallelized across threads using openMP. The speedups achieved using different numbers of threads is shown on the graph. Overall we were able to achieve a maximum 3.6x speedup using openMP. 
+
+![OpenMP graph](https://github.com/mirgow/CS205ParallelImaging/blob/main/img/openmptracking.png)
+
 #### Comparison Of Object Tracking Algorithms
 
-We compared the multithreaded implementations of the various image tracking algorithms in openCV. This verified the literature reported results that KCF tracking presented the best tradeoff between tracking quality and speed. We were nto able to benchmark the GOTURN tracker available in openCV since this deep learning based algorithm required too much memory overhead to initialize multiple trackers.
+We compared the multithreaded implementations of the various image tracking algorithms in openCV. This verified the literature reported results that KCF tracking presented the best tradeoff between tracking quality and speed. We were not able to benchmark the GOTURN tracker available in openCV since this deep learning based algorithm required too much memory overhead to initialize multiple trackers. The table below shows benchmarks of the main tracking algorithms on a 4K video with multiple objects and 16 threads.
 
 | Algorithm  | Multithreaded FPS |
 | ------------- | ------------- |
@@ -262,15 +289,14 @@ We compared the multithreaded implementations of the various image tracking algo
 | CSRT | 1.111  |
 
 
-
-#### KCF results
-
-The process of updating each object tracker with the new frame can be parallelized across threads usign openMP. The speedups achieved using different numbers of threads is shown on the graph. Overall we were able to achieve a maximum 3.6x speedup using openMP. 
-
-![OpenMP graph](https://github.com/mirgow/CS205ParallelImaging/blob/main/img/openmptracking.png)
-
 Here are the speedups with the other implementations, of aggregating each of the features outlined in the framework. 
+
+
 ![Speedups](https://github.com/mirgow/CS205ParallelImaging/blob/main/img/KCF%20Algorithm%20Speedup%20With%20Built-Up%20Features.png)
+
+
+We considered using a GPU implementation of the KCF object tracker. https://denismerigoux.github.io/GPU-tracking/. They achieved good results for 4K video object tracking with an observed 2x speedup. However based on simple calculations, using the multithreaded CPU version is better for our use case with multiple objects to track. For example parallelizing tracking of 12 objects across twelve threads would be faster than executing a 2x faster GPU version 12x sequentially. 
+
 
 ### Object Detection
 
@@ -291,7 +317,10 @@ Then, we can define sensitivity as TP/TP+FN. (Specificity is another potential v
 
 So, there definitely is a tradeoff, particularly with the downsizing scale, as that removes data and possible adds artifacts. Although it's also worth to note we're downsizing with OpenCV's `INTER_AREA` algorithm, which quote 'gives moire'-free results,' and is the most preferred method for image decimation. This means artifacts will be limited. 
 
-An alternative to online object tracking algorithms is simply to treat each frame as independent and detect objects as they come in. This has the advantage of eliminating any dependencies on the previous video frame but does not track an individually identifyable object over time. We used the yolov3 pretrained deeplearning model with openCL support. The baseline implementation was able to run at approximately 5 fps with around 40% utilization of a single Tesla M60 GPU. Unfortunately we did not get to try out the cuda accelerated version since the cuDNN library would not work with the Tesla M60. The openCL version was actually slower than the CPU. However, we would expect much better perfromance using the GPU version with CUDA.
+
+### Deep learning for Object Detection 
+
+An alternative to online object tracking algorithms is simply to treat each frame as independent and detect objects as they come in. This has the advantage of eliminating any dependencies on the previous video frame but does not track an individually identifyable object over time. We used the yolov3 pretrained deeplearning model with openCL support. The baseline implementation was able to run at approximately 5 fps with around 40% utilization of a single Tesla M60 GPU. Note the the openCL implementation was unable to take advantage of multiple GPUs. Unfortunately we did not get to try out the cuda accelerated version since the cuDNN library would not work with the Tesla M60. The openCL version was actually slower than the CPU. However, we would expect much better perfromance using the GPU version with CUDA. Qualitatively, the yolo object detection gives different results than the tracking algorithms. Each frame is evaluated independently so there is less coherence in the location of detected objects across frames. We can also see how yolo is able to assign a class label to the objects it detects.
 
 | Backend  | FPS |
 | ------------- | ------------- |
@@ -309,5 +338,4 @@ An alternative to online object tracking algorithms is simply to treat each fram
 - https://www.analyticsvidhya.com/blog/2019/09/feature-engineering-images-introduction-hog-feature-descriptor/
 - https://github.com/opencv/opencv/tree/master/samples/gpu
 - https://medium.com/dropout-analytics/opencv-cuda-for-videos-f3dcf346e398
-- 
 
