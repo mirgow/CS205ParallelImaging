@@ -219,6 +219,8 @@ export OMP_NUM_THREADS=16
 
 At this point, we're assuming you've downloaded our github repo, and have access to the scripts in /src and test examples in /data
 
+For the scripts we've placed in our repo, the backbones of them are obtained from our sources, so they're not original scripts. However, we have edited and reformatted them to a great degree.
+
 ### Image Preprocessing
 Running [comparingvideorates.cpp](https://github.com/mirgow/CS205ParallelImaging/blob/main/src/comparingvideorates.cpp) to evaluate the different timings related to image preprocessing, involving greyscaling and resizing. 
 Create the executable: 
@@ -335,4 +337,6 @@ An alternative to online object tracking algorithms is simply to treat each fram
 - https://www.analyticsvidhya.com/blog/2019/09/feature-engineering-images-introduction-hog-feature-descriptor/
 - https://github.com/opencv/opencv/tree/master/samples/gpu
 - https://medium.com/dropout-analytics/opencv-cuda-for-videos-f3dcf346e398
+- https://cw.fel.cvut.cz/b172/courses/mpv/labs/4_tracking/4b_tracking_kcf#:~:text=References-,Tracking%20with%20Correlation%20Filters%20(KCF),by%20a%20rectangular%20bounding%20box.&text=The%20filter%20is%20trained%20from,new%20position%20of%20the%20target.
+- https://medium.com/@wenrudong/what-is-opencvs-inter-area-actually-doing-282a626a09b3
 
