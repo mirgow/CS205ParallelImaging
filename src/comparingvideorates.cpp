@@ -52,7 +52,10 @@ int main(int argc, const char* argv[])
 
 
     auto star = std::chrono::steady_clock::now( );
-    cv::cuda::GpuMat d_frame;
+    cv::cuda::GpuMat d_frame(frame);
+    cuda::GpuMat d_dst;
+
+
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now( ) - star );
     cout << "milliseconds to initialize GPU: " << elapsed.count( ) << '\n';
     //cv::Ptr<cv::cudacodec::VideoReader> d_reader = cv::cudacodec::createVideoReader(fname);
@@ -85,11 +88,11 @@ int main(int argc, const char* argv[])
         d_frame.upload(frame);
 
         // greyscaling (on GPU)
-        cv::cvtColor(frame, frame, cv::COLOR_BGR2GRAY);
-        cv::cvtColor(frame, frame, cv::COLOR_GRAY2BGR);
+        cuda::cvtColor(d_frame, d_frame, cv::COLOR_BGR2GRAY);
+        cuda::cvtColor(d_frame, d_frame, cv::COLOR_GRAY2BGR);
 
         // resizing (on GPU)
-        resize(frame, frame, Size(), 0.5, 0.5, INTER_AREA);
+        cuda::resize(d_frame, d_frame, Size(), 0.5, 0.5, INTER_AREA);
 
         // line below downloads from GPU
         d_frame.download(frame);
