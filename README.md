@@ -13,6 +13,8 @@ We're utilizing the beautiful OpenCV library in C++ for simpler and more efficie
 
 It's also worth to note the documentation on OpenCV+CUDA C++ framework is pretty terrible, and almost devoid for the python version (another reason we preferred use on C++).
 
+One significant drawback to this method is the inability to execute complicated functions in the GPU space, as there are [limited operations](https://docs.opencv.org/3.4/d0/d60/classcv_1_1cuda_1_1GpuMat.html) that can be called on a `GpuMat` instance. So, tracking operations will have to be held in the CPU memory. However, we came with workarounds. 
+
 #### HOG Algorithm
 This is a feature descriptor that extracts both the gradient and orientation of the edges of features in an image, which are then pooled into localized parts. Then, a unique histogram is generated for each part. 
 Steps include:
@@ -26,6 +28,8 @@ Steps include:
 7. An identifier placed on top can now use the HOG to identify an object. 
 
 #### Schematic, Proposed Solution
+Sketched and modeled below is the rought ideas + framework to the project. 
+![frameworkgraph](https://github.com/mirgow/CS205ParallelImaging/blob/main/img/Framework.jpg)
 
 
 ## Initial Benchmarking
@@ -66,10 +70,6 @@ Quantified with scripts in src directory,
 | -- |-- |-- |-- |-- | -- |
 | Time (ms) | 20 | 1 | ~200 | 27 | 7 |
 
-
-The time taken to read one 4K image (one frame of video) using opencv is 20ms.
-
-The time taken to copy one 4K image to and from the GPU is approximately 1ms. 
 
 
 ## Application Technical Specs
@@ -192,8 +192,53 @@ cd ~/.virtualenvs/opencv_cuda/lib/python3.6/site-packages/
 ln -s /usr/local/lib/python3.6/site-packages/cv2/python-3.6/cv2.cpython-36m-x86_64-linux-gnu.so cv2.so
 ```
 19. If logging out of node and coming back, to restart virtual environment, use `source ~/.virtualenvs/opencv_cuda/bin/activate`
-20. With using g++ compiler to run C++ codes, insert ``pkg-config opencv4 --cflags --libs`` as one of the flags to indicate the libraries to use. 
+20. Make sure OpenMP materials are ready
+```
+sudo apt-get install software-properties-common
+sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+sudo apt-get update
+```
+21. With using g++ compiler to run C++ codes, insert ``pkg-config opencv4 --cflags --libs`` as one of the flags to indicate the libraries to use. 
 
+## Execution How-To
+After the instance is made, run and create the environment for which to work in:
+```
+nvidia-smi
+source ~/.virtualenvs/opencv_cuda/bin/activate
+export OMP_NUM_THREADS=16
+```
+
+At this point, we're assuming you've downloaded our github repo, and have access to the scripts in /src and test examples in /data
+
+### Image Preprocessing
+Running [comparingvideorates.cpp](https://github.com/mirgow/CS205ParallelImaging/blob/main/src/comparingvideorates.cpp) to evaluate the different timings related to image preprocessing, involving greyscaling and resizing. 
+Create the executable: 
+```
+g++ comparingvideorates.cpp -fopenmp `pkg-config opencv4 --cflags --libs` -o comparingvideorates
+```
+The script is designed so that you can input the video file as the argument following the executable, here's an example:
+```
+./comparingvideorates ped1test.mp4
+```
+By default, the script should display timing results of greyscaling and resizing with the GPU. ![Example picture.](https://github.com/mirgow/CS205ParallelImaging/blob/main/img/runningcomparingvideotests.png)
+To change and test out other timing results, editing of lines 80-95 are necessary. 
+CPU timing requires unhighlighting of lines 81 and 82 for greyscaling, line 85 for resizing, and highlighting of lines 91, 92, and 95.
+GPU timing of only resizing requires highlighting of lines 91 and 92; timing of only greyscaling requires highlighting of frame 95. 
+
+### KCF Object Tracking
+Running [omp_tracking_updated.cpp](https://github.com/mirgow/CS205ParallelImaging/blob/main/src/omp_tracking_updated.cpp) to work with actual implementation of tracking people in a video. 
+Create the executable:
+```
+g++ omp_tracking_updated.cpp -fopenmp `pkg-config opencv4 --cflags --libs` -o omp_tracking_updated
+```
+This script also takes video as first argument upon execution:
+```
+./omp_tracking_updated ped1test.mp4
+```
+The default running should look something like this, but with every frame in between. ![sample output](https://github.com/mirgow/CS205ParallelImaging/blob/main/img/trackinggpuspeedup.png)
+Some adjustables within the script:
+- Line 69 `float factor` can be changed to anything between 0-1. It represents the downscaling of the 4k input video. Beware, lower values lead to lower accuracy (higher FN rates) but higher FPS. We defaulted at .25, so producing 1/2 the quality of HD video.
+- Lines 213-214 with the `pragma`'s are the implementation of OpenMP over the trackers. Can deactivate to test FPS (will lower).
 
 
 ## Results
@@ -224,8 +269,25 @@ The process of updating each object tracker with the new frame can be paralleliz
 
 ![OpenMP graph](https://github.com/mirgow/CS205ParallelImaging/blob/main/img/openmptracking.png)
 
+Here are the speedups with the other implementations, of aggregating each of the features outlined in the framework. 
+![Speedups](https://github.com/mirgow/CS205ParallelImaging/blob/main/img/KCF%20Algorithm%20Speedup%20With%20Built-Up%20Features.png)
 
 ### Object Detection
+
+To evaluate for accuracy in tandem with FPS for a holistic representation of the quality of our methods, we can define bins for machine vision:
+| True Positive | Human identified |
+| False Positive | Non-human identified |
+| True Negative | Tricky to describe, but everything non-human, not identified |
+| False Negative | Human not identified |
+
+Then, we can define sensitivity as TP/TP+FN. (Specificity is another potential value to measure, but we can't quantify TN's here). 
+
+| Algorithm | Sensitivity |
+| --- | --- |
+| Base KCF | ~67% |
+| Final Accelerated KCF | ~42% |
+
+So, there definitely is a tradeoff, particularly with the downsizing scale, as that removes data and possible adds artifacts. Although it's also worth to note we're downsizing with OpenCV's `INTER_AREA` algorithm, which quote 'gives moire'-free results,' and is the most preferred method for image decimation. This means artifacts will be limited. 
 
 An alternative to online object tracking algorithms is simply to treat each frame as independent and detect objects as they come in. This has the advantage of eliminating any dependencies on the previous video frame but does not track an individually identifyable object over time. We used the yolov3 pretrained deeplearning model with openCL support. The baseline implementation was able to run at approximately 5 fps with around 40% utilization of a single Tesla M60 GPU. 
 
