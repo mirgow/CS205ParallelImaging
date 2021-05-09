@@ -368,6 +368,21 @@ An alternative to online object tracking algorithms is simply to treat each fram
 | CPU | 8 |
 | openCL | 5  |
 
+
+## DEMOS
+
+
+### Object Tracking
+!["Tracking"](./img/tracking.gif)
+
+### Object Detection
+
+!["Detection"](./img/detection.gif)
+
+### Livestream
+
+!["Live Tracking"](./img/livedemo.gif)
+
 ## Sources
 
 - https://developer.nvidia.com/cuda-gpus
