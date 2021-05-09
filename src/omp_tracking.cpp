@@ -52,7 +52,7 @@ void getRandomColors(vector<Scalar>& colors, int numColors)
 
 int main( int argc, const char** argv ) {
     // set default values for tracking algorithm and video
-    string videoPath = "../data/ped1test.mp4";
+    string videoPath = "../data/ped1.mp4";
 
     // create a video capture object to read videos
     cv::VideoCapture cap(videoPath);
@@ -133,10 +133,11 @@ int main( int argc, const char** argv ) {
       cout << "Frame " << i << endl;
       // Track FPS of processing
       if (i % 20 == 0){
-        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now( ) - start );
+        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now( )-start);
         float fps = 20000.0/elapsed.count( );
         cout << "FPS: " << fps << endl;
-        auto start = std::chrono::steady_clock::now( );
+        start = std::chrono::steady_clock::now( );
+
       }
       //Update the tracking result with new frame
       //auto star = std::chrono::steady_clock::now( );

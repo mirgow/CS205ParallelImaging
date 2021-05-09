@@ -66,7 +66,7 @@ int main( int argc, const char* argv[]) {
     Mat frame;
 
     //set factor for downsizing images, the lower the value the higher the FPS, though it'll trade off accuracy.
-    float factor = 0.25;
+    float factor = 0.2;
 
     // quit if unabke to read video file
     if(!cap.isOpened())
@@ -173,7 +173,7 @@ int main( int argc, const char* argv[]) {
       // line below uploads to GPU
       d_frame.upload(frame);
 
-      auto star = std::chrono::steady_clock::now( );
+      //auto star = std::chrono::steady_clock::now( );
 
 
       // greyscaling (on CPU)
@@ -194,15 +194,15 @@ int main( int argc, const char* argv[]) {
       d_frame.download(frame);
 
 
-      auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now( ) - star );
-      cout << "milliseconds to preprocess: " << elapsed.count( ) << '\n';
+      //auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now( ) - star );
+      //cout << "milliseconds to preprocess: " << elapsed.count( ) << '\n';
 
       // Track FPS of processing
       if (i % 20 == 0){
         auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now( ) - start );
         float fps = 20000.0/elapsed.count( );
         cout << "FPS: " << fps << endl;
-        auto start = std::chrono::steady_clock::now( );
+        start = std::chrono::steady_clock::now( );
       }
       //Update the tracking result with new frame
       //auto star = std::chrono::steady_clock::now( );
