@@ -211,22 +211,29 @@ sudo apt-get update
 
 ### Notable Lines of Code
 
-Resizing: `cv::resize(source, destination, Size(), factorinx, factoriny, INTER_AREA);`
+##### Resizing: `cv::resize(source, destination, Size(), factorinx, factoriny, INTER_AREA);`
+
 For GPU usage, GpuMat and not (CPU) Mat must be supplied to 'source', and resize should be initialized as `cv::cuda::resize()` to indicate an operation in the GPU memory space.
+
 The 'factorinx' and 'factoriny' refer to the downscaling ratio. 
+
 'INTER_AREA' is the specification of the resizing algorithm - many different ones are available. We decided `INTER_AREA` was optimal. 
 
-Greyscaling: 
+##### Greyscaling: 
 ```
 cv::cvtColor(source, dest, cv::COLOR_BGR2GRAY);
 cv::cvtColor(source, dest, cv::COLOR_GRAY2BGR);
 ```
 Similarly, for GPU usage use `cv::cuda::cvtColor()`, and feed a GpuMat. 
+
 Two are placed back to back, because the Mat/GpuMat organization is corrupted in the gray format as dictated by `BGR2GRAY`, and needs to be restored to the color channels (without color). 
 
-GPU uploading/downloading
+##### GPU uploading/downloading:
+
 Creation of a GpuMat container: `cv::cuda::GpuMat d_frame`
+
 Uploading to GPU memory for a single frame: `d_frame.upload(frame)`
+
 Downloading for videowriter: `d_frame.download(frame)`
 
 ## Execution How-To
