@@ -209,7 +209,29 @@ sudo apt-get update
 ```
 21. With using g++ compiler to run C++ codes, insert ``pkg-config opencv4 --cflags --libs`` as one of the flags to indicate the libraries to use. 
 
+### Notable Lines of Code
+
+Resizing: `cv::resize(source, destination, Size(), factorinx, factoriny, INTER_AREA);`
+For GPU usage, GpuMat and not (CPU) Mat must be supplied to 'source', and resize should be initialized as `cv::cuda::resize()` to indicate an operation in the GPU memory space.
+The 'factorinx' and 'factoriny' refer to the downscaling ratio. 
+'INTER_AREA' is the specification of the resizing algorithm - many different ones are available. We decided `INTER_AREA` was optimal. 
+
+Greyscaling: 
+```
+cv::cvtColor(source, dest, cv::COLOR_BGR2GRAY);
+cv::cvtColor(source, dest, cv::COLOR_GRAY2BGR);
+```
+Similarly, for GPU usage use `cv::cuda::cvtColor()`, and feed a GpuMat. 
+Two are placed back to back, because the Mat/GpuMat organization is corrupted in the gray format as dictated by `BGR2GRAY`, and needs to be restored to the color channels (without color). 
+
+GPU uploading/downloading
+Creation of a GpuMat container: `cv::cuda::GpuMat d_frame`
+Uploading to GPU memory for a single frame: `d_frame.upload(frame)`
+Downloading for videowriter: `d_frame.download(frame)`
+
 ## Execution How-To
+
+### Environment Establishment 
 After the instance is made, run and create the environment for which to work in:
 ```
 nvidia-smi
@@ -220,6 +242,15 @@ export OMP_NUM_THREADS=16
 At this point, we're assuming you've downloaded our github repo, and have access to the scripts in /src and test examples in /data
 
 For the scripts we've placed in our repo, the backbones of them are obtained from our sources, so they're not original scripts. However, we have edited and reformatted them to a great degree.
+
+### Data Sources, Testing Info
+
+These sample videos are located in the [/data](https://github.com/mirgow/CS205ParallelImaging/tree/main/data) folder
+| 4k sample video | Frames |
+| -- | -- |
+| [ped1test.mp4](https://github.com/mirgow/CS205ParallelImaging/blob/main/data/ped1test.mp4) | 25 |
+| ped1_Trim.mp4 | 299 |
+| [ped1.mp4](https://github.com/mirgow/CS205ParallelImaging/blob/main/data/ped1.mp4) | 597 | 
 
 ### Image Preprocessing
 Running [comparingvideorates.cpp](https://github.com/mirgow/CS205ParallelImaging/blob/main/src/comparingvideorates.cpp) to evaluate the different timings related to image preprocessing, involving greyscaling and resizing. 
@@ -248,9 +279,12 @@ This script also takes video as first argument upon execution:
 ```
 The default running should look something like this, but with every frame in between. ![sample output](https://github.com/mirgow/CS205ParallelImaging/blob/main/img/trackinggpuspeedup.png)
 
+The output video will be automatically saved as 'trackingupdated.mp4'.
+
 Some adjustables within the script:
 - Line 69 `float factor` can be changed to anything between 0-1. It represents the downscaling of the 4k input video. Beware, lower values lead to lower accuracy (higher FN rates) but higher FPS. We defaulted at .25, so producing 1/2 the quality of HD video.
 - Lines 213-214 with the `pragma`'s are the implementation of OpenMP over the trackers. Can deactivate to test FPS (will lower).
+- Line 115 contains the name of the output file: `VideoWriter video("trackingupdated.mp4",`... and changing 'trackingupdated.mp4' will produce different named final video. 
 
 
 ### YOLO object Detection
@@ -308,6 +342,7 @@ To evaluate for accuracy in tandem with FPS for a holistic representation of the
 | False Negative | Human not identified |
 
 Then, we can define sensitivity as TP/TP+FN. (Specificity is another potential value to measure, but we can't quantify TN's here). 
+To that end, we parsed through final videos produced by algorithms detailed below by eye to identify FNs, because there is no other tool for that.
 
 | Algorithm | Sensitivity |
 | --- | --- |
