@@ -373,15 +373,15 @@ An alternative to online object tracking algorithms is simply to treat each fram
 
 
 ### Object Tracking
-!["Tracking"](./img/tracking.gif)
+!["Tracking"](https://github.com/mirgow/CS205ParallelImaging/blob/main/img/tracking.gif)
 
 ### Object Detection
 
-!["Detection"](./img/detection.gif)
+!["Detection"](https://github.com/mirgow/CS205ParallelImaging/blob/main/img/detection2.gif)
 
 ### Livestream
 
-!["Live Tracking"](./img/livedemo.gif)
+!["Live Tracking"](https://github.com/mirgow/CS205ParallelImaging/blob/main/img/livedemo.gif)
 
 ## Sources
 
