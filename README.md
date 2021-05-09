@@ -236,6 +236,7 @@ This script also takes video as first argument upon execution:
 ./omp_tracking_updated ped1test.mp4
 ```
 The default running should look something like this, but with every frame in between. ![sample output](https://github.com/mirgow/CS205ParallelImaging/blob/main/img/trackinggpuspeedup.png)
+
 Some adjustables within the script:
 - Line 69 `float factor` can be changed to anything between 0-1. It represents the downscaling of the 4k input video. Beware, lower values lead to lower accuracy (higher FN rates) but higher FPS. We defaulted at .25, so producing 1/2 the quality of HD video.
 - Lines 213-214 with the `pragma`'s are the implementation of OpenMP over the trackers. Can deactivate to test FPS (will lower).
@@ -275,6 +276,8 @@ Here are the speedups with the other implementations, of aggregating each of the
 ### Object Detection
 
 To evaluate for accuracy in tandem with FPS for a holistic representation of the quality of our methods, we can define bins for machine vision:
+| Bin | Description |
+| -- | -- |
 | True Positive | Human identified |
 | False Positive | Non-human identified |
 | True Negative | Tricky to describe, but everything non-human, not identified |
