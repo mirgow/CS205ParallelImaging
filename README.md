@@ -25,6 +25,8 @@ Steps include:
 
 7. An identifier placed on top can now use the HOG to identify an object. 
 
+#### Schematic, Proposed Solution
+
 
 ## Initial Benchmarking
 
@@ -40,14 +42,15 @@ These were run through the script [comparingvideorates.cpp](https://github.com/m
 | CPU | greyscaling+resizing frames  | 25 / 4k | 72.907 | 13.716 |  
 | CPU | greyscaling+resizing frames  | 299 / 4k | 55.245 | 18.101 | 
 | CPU | greyscaling+resizing frames  | 597 / 4k | 54.123 | 18.477 | 
-| GPU | parsing frames | 25 / 4k | 48.593 | 20.579 |
-| GPU | greyscaling frames | 299 / 4k | 58.305 | 17.151 |
-| GPU | resizing frames | 299 / 4k | 25.860 | 38.671 |
-| GPU | greyscaling+resizing frames | 25 / 4k | 82.643 | 12.100 |
-| GPU | greyscaling+resizing frames | 299 / 4k | 59.781 | 16.728 |
-| GPU | greyscaling+resizing frames | 597 / 4k | 59.170 | 16.910 |
+| GPU | greyscaling frames | 299 / 4k | 28.350 | 35.274 |
+| GPU | resizing frames | 299 / 4k | 23.787 | 42.04 |
+| GPU | greyscaling+resizing frames | 25 / 4k | 46.277 | 21.609 |
+| GPU | greyscaling+resizing frames | 299 / 4k | 29.947 | 33.393 |
+| GPU | greyscaling+resizing frames | 597 / 4k | 28.861 | 34.649 |
 
-Note: Video Quality for HD is defined as a 1920x1080 frame size, and 4k as a 3840x2160 frame size (in pixels). 
+Note: Video Quality for 4k is described as a 3840x2160 frame size (in pixels). 
+
+![Graph for preprocessing data](https://github.com/mirgow/CS205ParallelImaging/blob/6c62f3b8d479bbcc78d2d0fd0feefd3fd6ec9565/img/CPU%20vs.%20GPU%20FPS%20Image%20Preprocessing.png)
 
 ### Main Algorithms
 
@@ -57,6 +60,12 @@ Note: Video Quality for HD is defined as a 1920x1080 frame size, and 4k as a 384
 | KCF object tracking  | 0.689  |
 
 ### Overheads
+
+Quantified with scripts in src directory,
+| Overheads | Read one 4k image using OpenCV | Copy image to/back from GPU | GPU initilization | Resizing on CPU | Resizing on GPU |
+| -- |-- |-- |-- |-- | -- |
+| Time (ms) | 20 | 1 | ~200 | 27 | 7 |
+
 
 The time taken to read one 4K image (one frame of video) using opencv is 20ms.
 
