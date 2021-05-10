@@ -418,6 +418,13 @@ An alternative to online object tracking algorithms is simply to treat each fram
 -   `yolov3.cfg`: configuration file needed for `yolo_detectionv2.cpp`
 -   `yolov3.weights`: weights file needed for `yolo_detectionv2.cpp`
 
+`data/`
+
+-   `crosswalk.avi.icloud`: cross walk video sample
+-   `ped1.mp4`: ~30 second sample of people walking
+-   `ped1test.mp4`: ~1 second sample of people walking
+
+
 ## Sources
 
 -   https://developer.nvidia.com/cuda-gpus
