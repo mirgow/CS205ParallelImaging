@@ -404,7 +404,9 @@ An alternative to online object tracking algorithms is simply to treat each fram
 | CPU     | 8   |
 | openCL  | 5   |
 
+## Future Directions
 
+While we implemented multiple object tracking on a single node, one future direction would be to use a distributed computing approach whereby multiple nodes work together simultaneously. However, with distributed computing comes a tradeoff between latency and throughput: while we should theoretically be able to perform many more computations, there will also be a much higher communication/synchronization cost. In our project, we had to balance throughput and latency due to our real-time goal (latency was very important). In a different setting, however, such as batch processing of pre-recorded videos, where latency is not as important, much could be gained from exploring a distributed computing approach.
 
 ## DEMOS
 
