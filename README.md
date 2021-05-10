@@ -91,10 +91,10 @@ We also quantified the main relevant overheads for moving and resizing images on
 ### Software Specs
 
 -   Ubuntu distro 18.04
--   C++ compiler ver 7.5.0
+-   C++ compiler version 7.5.0
 -   OpenCL
 -   OpenCV 4.2.0
--   NVIDIA CUDA ver 10.0
+-   NVIDIA CUDA version 10.0
 -   CMake 3.10.2
 
 ### Replicability Information
@@ -145,7 +145,7 @@ export PATH=/usr/local/cuda-10.0/bin:$PATH
 export LD_LIBRARY_PATH=/usr/local/cuda-10.0/lib64:$LD_LIBRARY_PATH
 ```
 
-at the end of the file. Type :wq to save and quit.
+at the end of the file. Type ":wq" to save and quit.
 
 8. `source ~/.bashrc`
    `nvcc -V`
