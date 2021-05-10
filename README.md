@@ -423,6 +423,8 @@ An alternative to online object tracking algorithms is simply to treat each fram
 -   `crosswalk.avi.icloud`: cross walk video sample
 -   `ped1.mp4`: ~30 second sample of people walking
 -   `ped1test.mp4`: ~1 second sample of people walking
+-   `tracking.mp4`: sample of tracking people
+-   `trackingupdated.mp4`: updated sample of tracking people (black and white)
 
 
 ## Sources
