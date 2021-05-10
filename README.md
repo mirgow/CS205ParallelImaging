@@ -24,7 +24,7 @@ Steps include:
 1. Finding of optimal linear filter, solved as a least squares problem. Adds complexity of O(n^2)
 2. Fourier transformations rapidly speed up solution process.
 3. Map input data through a non-linear function, leading to kernelized ridge regression.
-4. Obtain linear correlation tracker through the kernel, in our case a RBF Guassian kernel.
+4. Obtain linear correlation tracker through the kernel, in our case a RBF Gaussian kernel.
 5. Update through every frame with minimal distance.
 
 #### Schematic, Proposed Solution
