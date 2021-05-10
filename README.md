@@ -395,7 +395,7 @@ To that end, we parsed through final videos produced by algorithms detailed belo
 
 So, there definitely is a tradeoff, particularly with the downsizing scale, as that removes data and possible adds artifacts. Although it's also worth to note we're downsizing with OpenCV's `INTER_AREA` algorithm, which quote 'gives moire'-free results,' and is the most preferred method for image decimation. This means artifacts will be limited.
 
-### Deep learning for Object Detection
+#### Deep learning for Object Detection
 
 An alternative to online object tracking algorithms is simply to treat each frame as independent and detect objects as they come in. This has the advantage of eliminating any dependencies on the previous video frame but does not track an individually identifiable object over time. We used the yolov3 pre-trained deep learning model with openCL support. The baseline implementation was able to run at approximately 5 fps with around 40% utilization of a single Tesla M60 GPU. Note the the openCL implementation was unable to take advantage of multiple GPUs. Unfortunately we did not get to try out the CUDA accelerated version since the cuDNN library would not work with the Tesla M60. The openCL version was actually slower than the CPU. However, we would expect much better performance using the GPU version with CUDA. Qualitatively, the yolo object detection gives different results than the tracking algorithms. Each frame is evaluated independently so there is less coherence in the location of detected objects across frames. We can also see how yolo is able to assign a class label to the objects it detects.
 
@@ -403,6 +403,23 @@ An alternative to online object tracking algorithms is simply to treat each fram
 | ------- | --- |
 | CPU     | 8   |
 | openCL  | 5   |
+
+
+
+## DEMOS
+
+
+### Object Tracking
+!["Tracking"](https://github.com/mirgow/CS205ParallelImaging/blob/main/img/tracking.gif)
+
+### Object Detection
+
+!["Detection"](https://github.com/mirgow/CS205ParallelImaging/blob/main/img/detection2.gif)
+
+### Livestream
+
+!["Live Tracking"](https://github.com/mirgow/CS205ParallelImaging/blob/main/img/livedemo.gif)
+
 
 ## Files
 
