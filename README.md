@@ -428,6 +428,10 @@ An alternative to online object tracking algorithms is simply to treat each fram
 -   `video.mp4`: video sample (dog)
 -   `VIRAT_S_010204_05_000856_000890.mp4`: overhead video shot of people walking
 
+`img/`
+
+-   Contains various images for README and presentation
+
 ## Sources
 
 -   https://developer.nvidia.com/cuda-gpus
