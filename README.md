@@ -281,7 +281,7 @@ At this point, we're assuming you've downloaded our Github repo, and have access
 
 For the scripts we've placed in our repo, the backbones of them are obtained from our sources, so they're not original scripts. However, we have edited and reformatted them to a great degree.
 
-### Data Sources, Testing Info
+### Data Sources and Testing Info
 
 These sample videos are located in the [/data](https://github.com/mirgow/CS205ParallelImaging/tree/main/data) folder
 | 4k sample video | Frames |
