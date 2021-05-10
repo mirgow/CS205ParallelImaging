@@ -84,9 +84,8 @@ We also quantified the main relevant overheads for moving and resizing images on
 
 -   Testing was carried out on AWS Computing Platform, specifically on one g3.8xlarge instance, consisting of 2 NVIDIA Tesla M60 GPUs. 32 cores (threads in parallel).
 -   Hybrid Parallel Processing Framework: OpenCV CUDA multi-GPU use + OpenMP. (Hybrid distributed and shared-memory application)
-    -   OpenCV CUDA module allows the optimization of code through GPUs, and with `cv::cuda::setDevice` the partitioning of different sections of code into separate GPUs. All usage of multiple GPUs has to be hardcoded/specified in the code. In our case, that would be either applying `cv::cuda::setDevice(0)` or `cv::cuda::setDevice(1)` before a chunk of code to tell the module to copy over information and carry out operations on either the first or second GPU on our 2-GPU g3.8xlarge instance. This is the distributed-memory part of our application, as we are forced to copy over information from CPU to the GPU.
+    -   OpenCV CUDA module allows the optimization of code through GPUs, and a special array of functions to speedup implementation. All usage of GPUs has to be hardcoded/specified in the code. In our case, that would be initializing a GpuMat instance with `cv::cuda::GpuMat` before a chunk of code to tell the module to copy over information and carry out operations on the GPU on our 2-GPU g3.8xlarge instance. This is the distributed-memory part of our application, as we are forced to copy over information from CPU to the GPU.
     -   OpenMP then enables us to optimize the code in the massive multi-threading environment of GPUs. Employing `#pragma` statements in the code and specifying thread count greatly speeds up operations along both GPUs. This is the shared-memory aspect of our model, as OpenMP is applied as multi-threading on one node/GPU, and all the memory is contained in the GPU.
--
 
 ### Software Specs
 
