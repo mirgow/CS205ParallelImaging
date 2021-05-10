@@ -1,13 +1,13 @@
 # CS205ParallelImaging
 
-## What're We Exploring?
+## What Are We Exploring?
 
 Massively speeding up the detection of objects in video, and tracking their movements. We've found current common methods to operate at slow real-time speeds, such as .25 FPS.
 Optimizing and speeding up an object detection algorithm poses to help in realms such as sports analytics, medical scanning, surveillance and security, self-driving cars, and more. We were initially focused on the Histogram of Oriented Gradients (HOG) algorithm, but through testing and comparison of other object tracking methods, we've identified other faster baseline algorithms such as Kernalized Correlation Filters (KCF), as we'll demonstrate below. Taking these algorithms, we've gone on to create and apply some parallel applications of the code to further improve performance, increasing speedup to FPS rates above 10. Methods and all replicability information are outlined below.
 
 tl;dr: Speeding up object tracking.
 
-#### How're We Exploring This?
+#### How Are We Exploring This?
 
 We're utilizing the beautiful OpenCV library in C++ for simpler and more efficient commands in video processing and machine vision. OpenCV conveniently can also be deployed with CUDA, the parallel computing platform developed by NVIDIA to rapidly speed up code, particularly on a GPU. That, combined with the flexibility of operating on C++ (over python, which has identical functionality), can enable use of both multiple GPUs and multithreading through OpenMP.
 
@@ -407,7 +407,6 @@ An alternative to online object tracking algorithms is simply to treat each fram
 ## Files
 
 `src/`
-
 -   `ImageLoading.cpp`: tests the time to copy images to PGU
 -   `comparingvideorates.cpp`: used to create initial benchmarks for frames preprocessing. See more and results at [Frames Preprocessing](#frames-preprocessing)
 -   `dogongrass.png`: used for image loading testing
@@ -419,7 +418,6 @@ An alternative to online object tracking algorithms is simply to treat each fram
 -   `yolov3.weights`: weights file needed for `yolo_detectionv2.cpp`
 
 `data/`
-
 -   `crosswalk.avi.icloud`: cross walk video sample
 -   `ped1.mp4`: ~30 second sample of people walking
 -   `ped1test.mp4`: ~1 second sample of people walking
@@ -429,7 +427,6 @@ An alternative to online object tracking algorithms is simply to treat each fram
 -   `VIRAT_S_010204_05_000856_000890.mp4`: overhead video shot of people walking
 
 `img/`
-
 -   Contains various images for README and presentation
 
 ## Sources
